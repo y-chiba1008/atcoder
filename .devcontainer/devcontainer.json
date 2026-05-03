@@ -46,5 +46,5 @@
     // ワークスペースを信頼済みにする
     "GEMINI_CLI_TRUST_WORKSPACE": "true"
   },
-  "postCreateCommand": "npm install -g @google/gemini-cli && pip install uv && [ -f \"pyproject.toml\" ] && uv sync"
+  "postCreateCommand": "npm install -g @google/gemini-cli && mkdir -p ~/.gemini && echo [{\\\"command\\\": \\\"input.newline\\\", \\\"key\\\": \\\"shift+enter\\\"}] > ~/.gemini/keybindings.json && pip install uv && uv sync"
 }
