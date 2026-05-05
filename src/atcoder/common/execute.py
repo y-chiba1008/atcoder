@@ -44,23 +44,27 @@ def run(contest: str, task: str, heuristics: bool, case: str | None) -> None:
     """
     指定したコンテスト・タスクのプログラムを実行し、テストデータと照合する
     """
-    # モジュールの動的インポート
+    # 実行対象となる問題の main 関数を動的に読み込む
     module_name = f'atcoder.contests.{contest}.{task}_main'
     try:
         module = importlib.import_module(module_name)
     except ImportError as e:
-        click.echo(f'Error: Module {module_name} not found. ({e})', err=True)
+        click.secho(f'Error: Module {module_name} not found. ({e})', fg='red', err=True)
         return
 
     main_func = getattr(module, 'main', None)
     if not main_func:
-        click.echo(f'Error: "main" function not found in {module_name}', err=True)
+        click.secho(
+            f'Error: "main" function not found in {module_name}', fg='red', err=True
+        )
         return
 
-    # テストデータの特定
+    # 実行ディレクトリからテスト対象となるケースファイルを特定する
     contest_dir = pathlib.Path(__file__).parent.parent / 'contests' / contest
     if not contest_dir.exists():
-        click.echo(f'Error: Contest directory {contest_dir} not found.', err=True)
+        click.secho(
+            f'Error: Contest directory {contest_dir} not found.', fg='red', err=True
+        )
         return
 
     case_numbers = [int(x.strip()) for x in case.split(',')] if case else None
@@ -72,37 +76,62 @@ def run(contest: str, task: str, heuristics: bool, case: str | None) -> None:
         ]
 
     if not test_files:
-        click.echo(f'No test cases found for {task} in {contest}', err=True)
+        click.secho(
+            f'No test cases found for {task} in {contest}', fg='yellow', err=True
+        )
         return
 
-    # 実行と結果表示
+    passed_count = 0
+    total_count = len(test_files)
+
+    # 各テストケースに対してプログラムを実行し、結果を照合・表示する
     for test_file in test_files:
         case_name = test_file.stem
         stdin_content, expected_output = parse_test_case(test_file)
 
         dummy_io = DummyIO(stdin_content)
 
-        # main関数の引数に合わせて呼び出す
-        # 通常は input=..., print=... を受け取る想定
+        # ターゲットの main 関数を DummyIO 経由で呼び出す
         try:
             main_func(input=dummy_io.input, print=dummy_io.print)
         except Exception as e:
-            click.echo(f'Error executing {case_name}: {e}', err=True)
+            click.secho(f'Error executing {case_name}: {e}', fg='red', err=True)
             continue
 
         actual_output = dummy_io.stdout.strip()
         expected_output = expected_output.strip()
         result = actual_output == expected_output
 
-        click.echo(f'case {case_name} =============')
-        click.echo('stdin --------------')
-        click.echo(stdin_content)
-        click.echo('stdout --------------')
-        click.echo(dummy_io.stdout, nl=False)
-        click.echo('expected --------------')
-        click.echo(expected_output)
-        click.echo(f'result: {result}')
-        click.echo()
+        if result:
+            passed_count += 1
+
+        # テスト結果の可視化（成否に応じた色分けと入出力情報の整形）
+        click.secho(f'▶ case {case_name} ', fg='cyan', bold=True, nl=False)
+        if result:
+            click.secho('[AC]', fg='green', bold=True)
+        else:
+            click.secho('[WA]', fg='red', bold=True)
+
+        click.secho('  stdin:', fg='blue')
+        click.echo(f'    {stdin_content.replace("\n", "\n    ")}')
+
+        click.secho('  stdout:', fg='blue')
+        click.echo(f'    {dummy_io.stdout.strip().replace("\n", "\n    ")}')
+
+        if not result:
+            click.secho('  expected:', fg='yellow')
+            click.echo(f'    {expected_output.replace("\n", "\n    ")}')
+
+        click.echo('-' * 40)
+
+    # 全ケースの実行完了後、最終的な成否数をサマリーとして表示
+    click.echo()
+    summary_color = 'green' if passed_count == total_count else 'red'
+    click.secho(
+        f'Summary: {passed_count}/{total_count} cases passed.',
+        fg=summary_color,
+        bold=True,
+    )
 
 
 if __name__ == '__main__':
