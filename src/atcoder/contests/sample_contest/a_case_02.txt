@@ -1,0 +1,5 @@
+# input
+abcdefg
+
+# expected output
+abcdefg
