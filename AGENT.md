@@ -17,13 +17,16 @@
 ## 3. ツール・実行環境
 - **uv:** プロジェクトの依存関係と環境は `uv` で管理されています。
 - **実行:** コードの実行は必ず `uv run` を介して行ってください。
-    - 例: `uv run python src/atcoder/common/execute.py`
+    - 例: `uv run atcoder run -c sample_contest -t a`
 
 ## 4. プロジェクト構成
 - `src/atcoder/common/`: 共通ユーティリティや実行スクリプト。
 - `src/atcoder/contests/`: 各コンテストごとの回答コード。
-    - `intro_heuristics/`: ヒューリスティック問題用のディレクトリ例。
-    - `sample_contest/`: サンプルコンテスト用のディレクトリ例。
+    - `[a-e]_main.py`: 回答用コード。
+    - `[a-e]_case_\d\d.txt`: テストデータ。以下のフォーマットで記述します。
+        - `# input`: 以降に行列や数値などの入力データを記述。
+        - `# expected output`: 以降に期待される出力結果を記述。
+
 
 ## 5. 開発フロー
 1.  **実装:** 問題に対する回答やユーティリティを記述。
