@@ -21,6 +21,52 @@ def parse_test_case(file_path: pathlib.Path) -> tuple[str, str]:
     return input_part, expected_output_part
 
 
+def display_case_result(
+    case_name: str,
+    result: bool,
+    stdin: str,
+    stdout: str,
+    expected: str,
+) -> None:
+    """
+    個別のテストケースの実行結果をコンソールに色付きで表示する
+    """
+    # ケース名と合否 (AC/WA) の表示
+    click.secho(f'▶ case {case_name} ', fg='cyan', bold=True, nl=False)
+    if result:
+        click.secho('[AC]', fg='green', bold=True)
+    else:
+        click.secho('[WA]', fg='red', bold=True)
+
+    # 標準入力の表示
+    click.secho('  stdin:', fg='blue')
+    click.echo(f'    {stdin.replace("\n", "\n    ")}')
+
+    # 標準出力の表示
+    click.secho('  stdout:', fg='blue')
+    click.echo(f'    {stdout.strip().replace("\n", "\n    ")}')
+
+    # 不正解時のみ期待される出力を表示
+    if not result:
+        click.secho('  expected:', fg='yellow')
+        click.echo(f'    {expected.replace("\n", "\n    ")}')
+
+    click.echo('-' * 40)
+
+
+def display_execution_summary(passed_count: int, total_count: int) -> None:
+    """
+    全ケース実行後の最終的な統計情報を表示する
+    """
+    click.echo()
+    summary_color = 'green' if passed_count == total_count else 'red'
+    click.secho(
+        f'Summary: {passed_count}/{total_count} cases passed.',
+        fg=summary_color,
+        bold=True,
+    )
+
+
 @click.group()
 def cli():
     """AtCoder 開発補助ツール"""
@@ -38,7 +84,7 @@ def cli():
     '-C',
     type=str,
     default=None,
-    help='ケース番号 カンマ区切りで複数指定化, 省略の場合、全部',
+    help='ケース番号 カンマ区切りで複数指定可能, 省略の場合、全ケースを実行する',
 )
 def run(contest: str, task: str, heuristics: bool, case: str | None) -> None:
     """
@@ -105,33 +151,17 @@ def run(contest: str, task: str, heuristics: bool, case: str | None) -> None:
         if result:
             passed_count += 1
 
-        # テスト結果の可視化（成否に応じた色分けと入出力情報の整形）
-        click.secho(f'▶ case {case_name} ', fg='cyan', bold=True, nl=False)
-        if result:
-            click.secho('[AC]', fg='green', bold=True)
-        else:
-            click.secho('[WA]', fg='red', bold=True)
+        # 結果の出力処理を外部関数に委譲
+        display_case_result(
+            case_name=case_name,
+            result=result,
+            stdin=stdin_content,
+            stdout=dummy_io.stdout,
+            expected=expected_output,
+        )
 
-        click.secho('  stdin:', fg='blue')
-        click.echo(f'    {stdin_content.replace("\n", "\n    ")}')
-
-        click.secho('  stdout:', fg='blue')
-        click.echo(f'    {dummy_io.stdout.strip().replace("\n", "\n    ")}')
-
-        if not result:
-            click.secho('  expected:', fg='yellow')
-            click.echo(f'    {expected_output.replace("\n", "\n    ")}')
-
-        click.echo('-' * 40)
-
-    # 全ケースの実行完了後、最終的な成否数をサマリーとして表示
-    click.echo()
-    summary_color = 'green' if passed_count == total_count else 'red'
-    click.secho(
-        f'Summary: {passed_count}/{total_count} cases passed.',
-        fg=summary_color,
-        bold=True,
-    )
+    # 全ケースの実行完了後、サマリーを表示
+    display_execution_summary(passed_count=passed_count, total_count=total_count)
 
 
 if __name__ == '__main__':
