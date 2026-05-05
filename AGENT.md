@@ -17,7 +17,7 @@
 ## 3. ツール・実行環境
 - **uv:** プロジェクトの依存関係と環境は `uv` で管理されています。
 - **実行:** コードの実行は必ず `uv run` を介して行ってください。
-    - 例: `uv run atcoder run -c sample_contest -t a`
+    - 例: `uv run atcoder run -c _sample_contest -t a`
 
 ## 4. プロジェクト構成
 - `src/atcoder/common/`: 共通ユーティリティや実行スクリプト。
