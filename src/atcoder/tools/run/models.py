@@ -27,7 +27,9 @@ def load_main_func(contest: str, task: str) -> Callable[..., Any]:
     return main_func
 
 
-def get_test_files(contest: str, task: str, case: str | None) -> list[pathlib.Path]:
+def get_test_files(
+    contest: str, task: str, case: str | None
+) -> list[pathlib.Path]:
     """
     実行対象となるテストケースファイルのパスリストを取得する。
 
@@ -42,7 +44,11 @@ def get_test_files(contest: str, task: str, case: str | None) -> list[pathlib.Pa
     Raises:
         RuntimeError: コンテストディレクトリが見つからない、またはテストケースが存在しない場合
     """
-    contest_dir = pathlib.Path(__file__).parent.parent.parent / 'contests' / contest
+    # src/atcoder/contests ディレクトリへのパスを構築
+    # models.py が src/atcoder/tools/run/ にあることを前提としている
+    base_dir = pathlib.Path(__file__).resolve().parent.parent.parent
+    contest_dir = base_dir / 'contests' / contest
+
     if not contest_dir.exists():
         raise RuntimeError(f'Contest directory {contest_dir} not found.')
 
@@ -70,12 +76,24 @@ def parse_test_case(file_path: pathlib.Path) -> tuple[str, str]:
     Returns:
         tuple[str, str]: (標準入力の内容, 期待される出力の内容)
     """
-    content = file_path.read_text(encoding='utf-8')
-    parts = content.split('# expected output')
-    if len(parts) != 2:
-        parts = content.split('# excepted output')
+    lines = file_path.read_text(encoding='utf-8').splitlines()
 
-    input_part = parts[0].replace('# input', '').strip()
-    expected_output_part = parts[1].strip() if len(parts) > 1 else ''
+    input_lines: list[str] = []
+    output_lines: list[str] = []
 
-    return input_part, expected_output_part
+    current_target = None
+
+    for line in lines:
+        normalized_line = line.strip().lower()
+        if normalized_line == '# input':
+            current_target = input_lines
+            continue
+        elif normalized_line in ('# expected output', '# excepted output'):
+            current_target = output_lines
+            continue
+
+        if current_target is not None:
+            current_target.append(line)
+
+    return '\n'.join(input_lines).strip(), '\n'.join(output_lines).strip()
+

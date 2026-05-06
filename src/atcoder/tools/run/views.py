@@ -1,6 +1,25 @@
 import click
 
 
+def truncate_text(text: str, max_lines: int = 20) -> str:
+    """
+    テキストが長い場合に中略して返す。
+
+    Args:
+        text (str): 対象のテキスト
+        max_lines (int): 表示する最大行数
+
+    Returns:
+        str: 処理後のテキスト
+    """
+    lines = text.strip().splitlines()
+    if len(lines) <= max_lines:
+        return text.strip()
+
+    half = max_lines // 2
+    return '\n'.join(lines[:half] + ['    ... (truncated) ...'] + lines[-half:])
+
+
 def display_case_result(
     case_name: str,
     result: bool,
@@ -20,16 +39,16 @@ def display_case_result(
 
     # 標準入力の表示
     click.secho('  stdin:', fg='blue')
-    click.echo(f'    {stdin.replace("\n", "\n    ")}')
+    click.echo(f'    {truncate_text(stdin).replace("\n", "\n    ")}')
 
     # 標準出力の表示
     click.secho('  stdout:', fg='blue')
-    click.echo(f'    {stdout.strip().replace("\n", "\n    ")}')
+    click.echo(f'    {truncate_text(stdout).replace("\n", "\n    ")}')
 
     # 不正解時のみ期待される出力を表示
     if not result:
         click.secho('  expected:', fg='yellow')
-        click.echo(f'    {expected.replace("\n", "\n    ")}')
+        click.echo(f'    {truncate_text(expected).replace("\n", "\n    ")}')
 
     click.echo('-' * 40)
 

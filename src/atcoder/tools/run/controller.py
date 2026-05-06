@@ -50,6 +50,9 @@ def run(contest: str, task: str, heuristics: bool, case: str | None) -> None:
         display_error(e)
         return
 
+    if heuristics:
+        click.secho('Note: Heuristics mode is enabled. Score calculation is not yet implemented.', fg='yellow')
+
     passed_count = 0
     total_count = len(test_files)
 
@@ -63,6 +66,9 @@ def run(contest: str, task: str, heuristics: bool, case: str | None) -> None:
         # ターゲットの main 関数を DummyIO 経由で呼び出す
         try:
             main_func(input=dummy_io.input, print=dummy_io.print)
+        except EOFError:
+            display_error('Unexpected EOF (The program tried to read more input than available)', prefix=f'Error executing {case_name}')
+            continue
         except Exception as e:
             display_error(e, prefix=f'Error executing {case_name}')
             continue
