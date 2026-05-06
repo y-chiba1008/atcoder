@@ -27,9 +27,7 @@ def load_main_func(contest: str, task: str) -> Callable[..., Any]:
     return main_func
 
 
-def get_test_files(
-    contest: str, task: str, case: str | None
-) -> list[pathlib.Path]:
+def get_test_files(contest: str, task: str, case: str | None) -> list[pathlib.Path]:
     """
     実行対象となるテストケースファイルのパスリストを取得する。
 
@@ -85,10 +83,10 @@ def parse_test_case(file_path: pathlib.Path) -> tuple[str, str]:
 
     for line in lines:
         normalized_line = line.strip().lower()
-        if normalized_line == '# input':
+        if normalized_line == '==== input ====':
             current_target = input_lines
             continue
-        elif normalized_line in ('# expected output', '# excepted output'):
+        elif normalized_line == '==== output ====':
             current_target = output_lines
             continue
 
@@ -96,4 +94,3 @@ def parse_test_case(file_path: pathlib.Path) -> tuple[str, str]:
             current_target.append(line)
 
     return '\n'.join(input_lines).strip(), '\n'.join(output_lines).strip()
-
