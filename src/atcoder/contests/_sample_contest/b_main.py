@@ -2,8 +2,8 @@ from typing import Callable
 
 
 def main(input: Callable[[], str] = input, print: Callable[..., None] = print):
-    row = input()
-    print(row)
+    n = int(input())
+    print(n)
 
 
 if __name__ == '__main__':

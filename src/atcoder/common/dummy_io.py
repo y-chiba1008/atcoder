@@ -1,22 +1,54 @@
+import io
 from dataclasses import dataclass, field
-from typing import Generator
+from typing import Any, Generator
 
 
 @dataclass
 class DummyIO:
-    stdin: str
-    stdout: str = field(default='', init=False)
-    _input_gen: Generator[str, None, None] = field(init=False)
+    """
+    競技プログラミングのプログラムを実行する際に、標準入出力をシミュレートするためのクラス。
+    """
 
-    def __post_init__(self):
-        self._input_gen = (row for row in self.stdin.split('\n'))
+    stdin: str
+    _stdout_buffer: io.StringIO = field(default_factory=io.StringIO, init=False, repr=False)
+    _input_gen: Generator[str, None, None] = field(init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        # 入力文字列を改行で分割し、ジェネレータを作成
+        self._input_gen = (line for line in self.stdin.splitlines())
 
     def input(self) -> str:
+        """
+        標準入力から1行読み込む。Python標準の input() の動作をシミュレートする。
+
+        Returns:
+            str: 読み込んだ文字列
+
+        Raises:
+            EOFError: 入力がこれ以上ない場合
+        """
         try:
             return next(self._input_gen)
         except StopIteration:
-            return ''
+            raise EOFError('EOF when reading a line')
 
-    def print(self, *values: object, sep=' ', end='\n'):
-        values_str = sep.join([str(v) for v in values]) + end
-        self.stdout += values_str
+    def print(self, *values: Any, sep: str = ' ', end: str = '\n') -> None:
+        """
+        標準出力に書き込む。Python標準の print() の動作をシミュレートする。
+
+        Args:
+            *values (Any): 出力する値
+            sep (str): 値の区切り文字
+            end (str): 行末の文字
+        """
+        print(*values, sep=sep, end=end, file=self._stdout_buffer)
+
+    @property
+    def stdout(self) -> str:
+        """
+        これまでに蓄積された標準出力の内容を文字列として取得する。
+
+        Returns:
+            str: 蓄積された出力内容
+        """
+        return self._stdout_buffer.getvalue()

@@ -20,7 +20,7 @@
     - 例: `uv run atcoder run -c _sample_contest -t a`
 
 ## 4. プロジェクト構成
-- `src/atcoder/common/`: 共通ユーティリティや実行スクリプト。
+- `src/atcoder/tools/`: 開発支援ツール群（CLIの実装など）。
 - `src/atcoder/contests/`: 各コンテストごとの回答コード。
     - `[a-e]_main.py`: 回答用コード。
     - `[a-e]_case_\d\d.txt`: テストデータ。以下のフォーマットで記述します。
