@@ -53,6 +53,24 @@ def display_case_result(
     click.echo('-' * 40)
 
 
+def display_heuristics_case_result(
+    case_name: str,
+    stdout: str,
+    score: int | float,
+) -> None:
+    """
+    ヒューリスティックモードでの個別結果をコンソールに表示する。
+    """
+    click.secho(f'▶ case {case_name} ', fg='cyan', bold=True, nl=False)
+    click.secho(f'Score: {score}', fg='green', bold=True)
+
+    # 標準出力の表示
+    click.secho('  stdout:', fg='blue')
+    click.echo(f'    {truncate_text(stdout).replace("\n", "\n    ")}')
+
+    click.echo('-' * 40)
+
+
 def display_execution_summary(passed_count: int, total_count: int) -> None:
     """
     全ケース実行後の最終的な統計情報を表示する
@@ -64,6 +82,26 @@ def display_execution_summary(passed_count: int, total_count: int) -> None:
         fg=summary_color,
         bold=True,
     )
+
+
+def display_heuristics_summary(scores: list[int | float]) -> None:
+    """
+    ヒューリスティックモード実行後の統計情報を表示する。
+    """
+    if not scores:
+        return
+
+    total = len(scores)
+    max_score = max(scores)
+    min_score = min(scores)
+    avg_score = sum(scores) / total
+
+    click.echo()
+    click.secho('=== Heuristics Summary ===', fg='magenta', bold=True)
+    click.echo(f'Total cases: {total}')
+    click.echo(f'Max score:   {max_score}')
+    click.echo(f'Min score:   {min_score}')
+    click.echo(f'Average:     {avg_score:.2f}')
 
 
 def display_error(e: Exception | str, prefix: str = 'Error') -> None:

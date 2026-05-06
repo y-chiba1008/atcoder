@@ -18,13 +18,49 @@ def load_main_func(contest: str, task: str) -> Callable[..., Any]:
         RuntimeError: モジュールまたは main 関数が見つからない場合
     """
     module_name = f'atcoder.contests.{contest}.{task}_main'
-    module = importlib.import_module(module_name)
+    try:
+        module = importlib.import_module(module_name)
+    except ImportError:
+        raise RuntimeError(f'Module {module_name} not found.')
 
     main_func = getattr(module, 'main', None)
     if not main_func:
         raise RuntimeError(f'"main" function not found in {module_name}')
 
     return main_func
+
+
+def load_score_functions(
+    contest: str, task: str
+) -> tuple[Callable[[int], str], Callable[[str, str], int | float]]:
+    """
+    指定したコンテストとタスクのスコア計算用関数を動的に読み込む。
+
+    Args:
+        contest (str): コンテスト名
+        task (str): タスク名
+
+    Returns:
+        tuple: (generate_case, calc_score) のタプル
+
+    Raises:
+        RuntimeError: モジュールまたは関数が見つからない場合
+    """
+    module_name = f'atcoder.contests.{contest}.{task}_score'
+    try:
+        module = importlib.import_module(module_name)
+    except ImportError:
+        raise RuntimeError(f'Score module {module_name} not found.')
+
+    generate_case = getattr(module, 'generate_case', None)
+    calc_score = getattr(module, 'calc_score', None)
+
+    if not generate_case or not calc_score:
+        raise RuntimeError(
+            f'Required score functions (generate_case, calc_score) not found in {module_name}'
+        )
+
+    return generate_case, calc_score
 
 
 def get_test_files(contest: str, task: str, case: str | None) -> list[pathlib.Path]:
@@ -42,8 +78,6 @@ def get_test_files(contest: str, task: str, case: str | None) -> list[pathlib.Pa
     Raises:
         RuntimeError: コンテストディレクトリが見つからない、またはテストケースが存在しない場合
     """
-    # src/atcoder/contests ディレクトリへのパスを構築
-    # models.py が src/atcoder/tools/run/ にあることを前提としている
     base_dir = pathlib.Path(__file__).resolve().parent.parent.parent
     contest_dir = base_dir / 'contests' / contest
 
@@ -67,6 +101,7 @@ def get_test_files(contest: str, task: str, case: str | None) -> list[pathlib.Pa
 def parse_test_case(file_path: pathlib.Path) -> tuple[str, str]:
     """
     テストデータファイルを解析して(input, expected_output)を返す。
+    マーカーがない場合はファイル全体を入力と見なす。
 
     Args:
         file_path (pathlib.Path): テストケースファイルのパス
@@ -74,23 +109,30 @@ def parse_test_case(file_path: pathlib.Path) -> tuple[str, str]:
     Returns:
         tuple[str, str]: (標準入力の内容, 期待される出力の内容)
     """
-    lines = file_path.read_text(encoding='utf-8').splitlines()
+    content = file_path.read_text(encoding='utf-8')
+    lines = content.splitlines()
 
     input_lines: list[str] = []
     output_lines: list[str] = []
 
     current_target = None
+    has_marker = False
 
     for line in lines:
         normalized_line = line.strip().lower()
         if normalized_line == '==== input ====':
             current_target = input_lines
+            has_marker = True
             continue
         elif normalized_line == '==== output ====':
             current_target = output_lines
+            has_marker = True
             continue
 
         if current_target is not None:
             current_target.append(line)
+
+    if not has_marker:
+        return content.strip(), ''
 
     return '\n'.join(input_lines).strip(), '\n'.join(output_lines).strip()
