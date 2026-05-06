@@ -43,6 +43,16 @@ class DummyIO:
         """
         print(*values, sep=sep, end=end, file=self._stdout_buffer)
 
+    def close(self) -> None:
+        """内部バッファを閉じる。"""
+        self._stdout_buffer.close()
+
+    def __enter__(self) -> 'DummyIO':
+        return self
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        self.close()
+
     @property
     def stdout(self) -> str:
         """

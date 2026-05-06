@@ -26,17 +26,17 @@ def _execute_main(
     main_func: Callable[..., Any], stdin_content: str, case_name: str
 ) -> str | None:
     """main関数を実行し、標準出力を返す。エラー時はNoneを返す。"""
-    dummy_io = DummyIO(stdin_content)
-    try:
-        main_func(input=dummy_io.input, print=dummy_io.print)
-        return dummy_io.stdout.strip()
-    except EOFError:
-        display_error(
-            'Unexpected EOF (The program tried to read more input than available)',
-            prefix=f'Error executing {case_name}',
-        )
-    except Exception as e:
-        display_error(e, prefix=f'Error executing {case_name}')
+    with DummyIO(stdin_content) as dummy_io:
+        try:
+            main_func(input=dummy_io.input, print=dummy_io.print)
+            return dummy_io.stdout.strip()
+        except EOFError:
+            display_error(
+                'Unexpected EOF (The program tried to read more input than available)',
+                prefix=f'Error executing {case_name}',
+            )
+        except Exception as e:
+            display_error(e, prefix=f'Error executing {case_name}')
     return None
 
 
