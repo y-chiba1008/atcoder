@@ -1,5 +1,6 @@
-import importlib
-import pathlib
+"""
+コンテストの実行とテスト結果の照合を制御するコントローラーモジュール。
+"""
 
 import click
 
@@ -27,7 +28,13 @@ from atcoder.tools.run.views import (
 )
 def run(contest: str, task: str, heuristics: bool, case: str | None) -> None:
     """
-    指定したコンテスト・タスクのプログラムを実行し、テストデータと照合する
+    指定したコンテスト・タスクのプログラムを実行し、テストデータと照合する。
+
+    Args:
+        contest (str): コンテストのキー (例: 'abc001')
+        task (str): コンテスト内のタスク (例: 'a')
+        heuristics (bool): ヒューリスティック問題の場合は True
+        case (str | None): 実行するケース番号 (例: '1,2,3')。省略時は全ケース実行。
     """
     # 実行対象のmain関数を取得
     try:

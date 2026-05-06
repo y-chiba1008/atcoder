@@ -47,5 +47,12 @@ def display_execution_summary(passed_count: int, total_count: int) -> None:
     )
 
 
-def display_error(e, prefix: str = 'Error'):
+def display_error(e: Exception | str, prefix: str = 'Error') -> None:
+    """
+    エラーメッセージを標準エラー出力に赤色で表示する。
+
+    Args:
+        e (Exception | str): 表示するエラー内容
+        prefix (str): メッセージの接頭辞
+    """
     click.secho(f'{prefix}: {e}', fg='red', err=True)

@@ -1,11 +1,23 @@
 import importlib
 import pathlib
+from typing import Any, Callable
 
 
-def load_main_func(contest: str, task: str):
+def load_main_func(contest: str, task: str) -> Callable[..., Any]:
+    """
+    指定したコンテストとタスクの main 関数を動的に読み込む。
+
+    Args:
+        contest (str): コンテスト名 (例: 'abc001')
+        task (str): タスク名 (例: 'a')
+
+    Returns:
+        Callable[..., Any]: 読み込まれた main 関数
+
+    Raises:
+        RuntimeError: モジュールまたは main 関数が見つからない場合
+    """
     module_name = f'atcoder.contests.{contest}.{task}_main'
-
-    # raise ImportError if not found module
     module = importlib.import_module(module_name)
 
     main_func = getattr(module, 'main', None)
@@ -15,7 +27,21 @@ def load_main_func(contest: str, task: str):
     return main_func
 
 
-def get_test_files(contest, task, case):
+def get_test_files(contest: str, task: str, case: str | None) -> list[pathlib.Path]:
+    """
+    実行対象となるテストケースファイルのパスリストを取得する。
+
+    Args:
+        contest (str): コンテスト名
+        task (str): タスク名
+        case (str | None): 指定されたケース番号（カンマ区切り）。None の場合は全ケース。
+
+    Returns:
+        list[pathlib.Path]: テストケースファイルの pathlib.Path リスト
+
+    Raises:
+        RuntimeError: コンテストディレクトリが見つからない、またはテストケースが存在しない場合
+    """
     contest_dir = pathlib.Path(__file__).parent.parent.parent / 'contests' / contest
     if not contest_dir.exists():
         raise RuntimeError(f'Contest directory {contest_dir} not found.')
@@ -36,7 +62,13 @@ def get_test_files(contest, task, case):
 
 def parse_test_case(file_path: pathlib.Path) -> tuple[str, str]:
     """
-    テストデータファイルを解析して(input, expected_output)を返す
+    テストデータファイルを解析して(input, expected_output)を返す。
+
+    Args:
+        file_path (pathlib.Path): テストケースファイルのパス
+
+    Returns:
+        tuple[str, str]: (標準入力の内容, 期待される出力の内容)
     """
     content = file_path.read_text(encoding='utf-8')
     parts = content.split('# expected output')

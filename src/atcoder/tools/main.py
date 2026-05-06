@@ -4,8 +4,8 @@ from atcoder.tools.run.controller import run
 
 
 @click.group()
-def cli():
-    """AtCoder 開発補助ツール"""
+def cli() -> None:
+    """AtCoder 開発補助ツールのエントリポイント。"""
     pass
 
 
