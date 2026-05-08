@@ -92,7 +92,9 @@ def run(contest: str, task: str, heuristics: bool, case: str | None) -> None:
                     display_heuristics_case_result(case_name, stdout, score)
         else:
             # ケース指定がない場合は 0-99 のシードで自動生成
-            for seed in range(100):
+            offset = 0
+            size = 50
+            for seed in range(offset, offset + size):
                 case_name = f'seed_{seed:03}'
                 stdin_content = generate_case(seed)
                 stdout = _execute_main(main_func, stdin_content, case_name)

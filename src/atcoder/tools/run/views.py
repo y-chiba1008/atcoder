@@ -94,14 +94,14 @@ def display_heuristics_summary(scores: list[int | float]) -> None:
     total = len(scores)
     max_score = max(scores)
     min_score = min(scores)
-    avg_score = sum(scores) / total
+    total_score = sum(scores)
 
     click.echo()
     click.secho('=== Heuristics Summary ===', fg='magenta', bold=True)
     click.echo(f'Total cases: {total}')
     click.echo(f'Max score:   {max_score}')
     click.echo(f'Min score:   {min_score}')
-    click.echo(f'Average:     {avg_score:.2f}')
+    click.echo(f'Total score:     {total_score:.2f}')
 
 
 def display_error(e: Exception | str, prefix: str = 'Error') -> None:
