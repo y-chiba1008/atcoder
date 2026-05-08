@@ -1,3 +1,6 @@
+import math
+import statistics
+
 import click
 
 
@@ -84,24 +87,36 @@ def display_execution_summary(passed_count: int, total_count: int) -> None:
     )
 
 
-def display_heuristics_summary(scores: list[int | float]) -> None:
+def display_heuristics_summary(scores: list[int | float], actual_case_num: int) -> None:
     """
     ヒューリスティックモード実行後の統計情報を表示する。
     """
     if not scores:
         return
 
-    total = len(scores)
+    n = len(scores)
     max_score = max(scores)
     min_score = min(scores)
-    total_score = sum(scores)
+    mean = statistics.mean(scores)
+    std = statistics.stdev(scores)
+    cv_data = std / mean if mean != 0 else 0
+    cv_estimate = cv_data / math.sqrt(n)
+    prediction = mean * actual_case_num
+
+    bound = 0.05
+    is_enough = cv_estimate <= bound
+    inequality_sign = '<=' if is_enough else '>'
+    color = 'green' if is_enough else 'yellow'
 
     click.echo()
     click.secho('=== Heuristics Summary ===', fg='magenta', bold=True)
-    click.echo(f'Total cases: {total}')
+    click.echo(f'Total cases: {n}')
     click.echo(f'Max score:   {max_score}')
     click.echo(f'Min score:   {min_score}')
-    click.echo(f'Total score:     {total_score:.2f}')
+    click.echo(f'Average:     {mean:.2f}')
+    click.echo(f'STD:         {std:.2f}')
+    click.secho(f'CV estimate: {cv_estimate:.2f} {inequality_sign} {bound}', fg=color)
+    click.echo(f'prediction:  {prediction:.2f}')
 
 
 def display_error(e: Exception | str, prefix: str = 'Error') -> None:
