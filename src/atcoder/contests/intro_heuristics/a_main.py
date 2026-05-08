@@ -29,6 +29,7 @@ def main(input: Callable[[], str] = input, print: Callable[..., None] = print):
         max_score = max(scores)
         max_idx = scores.index(max_score)
         print(max_idx + 1)
+        last[max_idx] = day
 
 
 if __name__ == '__main__':

@@ -10,7 +10,9 @@ class DummyIO:
     """
 
     stdin: str
-    _stdout_buffer: io.StringIO = field(default_factory=io.StringIO, init=False, repr=False)
+    _stdout_buffer: io.StringIO = field(
+        default_factory=io.StringIO, init=False, repr=False
+    )
     _input_gen: Generator[str, None, None] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:

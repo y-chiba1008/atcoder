@@ -3,12 +3,14 @@ import random
 
 from atcoder.contests.intro_heuristics.a_main import N_TYPE
 
+
 def scores_of_day(day: int, last: list[int], c: list[int], s_d: list[int]) -> list[int]:
     """タイプiを選んだとしたら、その日に得られる得点のリスト"""
     losses = [c[type_idx] * (day - last[type_idx]) for type_idx in range(N_TYPE)]
     total_loss = sum(losses)
     scores = [s_d[i] - (total_loss - losses[i]) for i in range(N_TYPE)]
     return scores
+
 
 def generate_case(seed: int) -> str:
     """指定されたシードに基づく入力を生成する。"""
