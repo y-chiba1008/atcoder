@@ -1,6 +1,6 @@
 import click
 
-from atcoder.tools.run.controller import heuristics, run
+from atcoder.tools.command.controller import heuristics, run
 
 
 @click.group()

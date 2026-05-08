@@ -7,13 +7,13 @@ from typing import Any, Callable
 import click
 
 from atcoder.common.dummy_io import DummyIO
-from atcoder.tools.run.models import (
+from atcoder.tools.command.models import (
     get_test_files,
     load_main_func,
     load_score_functions,
     parse_test_case,
 )
-from atcoder.tools.run.views import (
+from atcoder.tools.command.views import (
     display_case_result,
     display_error,
     display_execution_summary,
