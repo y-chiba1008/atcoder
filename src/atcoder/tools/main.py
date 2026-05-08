@@ -1,6 +1,6 @@
 import click
 
-from atcoder.tools.run.controller import run
+from atcoder.tools.run.controller import heuristics, run
 
 
 @click.group()
@@ -10,6 +10,7 @@ def cli() -> None:
 
 
 cli.add_command(run)
+cli.add_command(heuristics)
 
 
 if __name__ == '__main__':

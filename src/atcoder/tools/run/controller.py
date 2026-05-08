@@ -44,16 +44,13 @@ def _execute_main(
 @click.option('--contest', '-c', type=str, required=True, help='コンテストのキー')
 @click.option('--task', '-t', type=str, required=True, help='コンテスト内のタスク')
 @click.option(
-    '--heuristics', '-h', is_flag=True, default=False, help='heuristics問題の場合True'
-)
-@click.option(
     '--case',
     '-C',
     type=str,
     default=None,
     help='ケース番号 カンマ区切りで複数指定可能, 省略の場合、全ケースを実行する',
 )
-def run(contest: str, task: str, heuristics: bool, case: str | None) -> None:
+def run(contest: str, task: str, case: str | None) -> None:
     """
     指定したコンテスト・タスクのプログラムを実行し、テストデータと照合する。
     """
@@ -64,73 +61,93 @@ def run(contest: str, task: str, heuristics: bool, case: str | None) -> None:
         display_error(e)
         return
 
-    if heuristics:
-        # ヒューリスティックモードの実行
-        try:
-            generate_case, calc_score = load_score_functions(contest, task)
-        except RuntimeError as e:
-            display_error(e)
-            return
+    # 通常モードの実行
+    try:
+        test_files = get_test_files(contest, task, case)
+    except RuntimeError as e:
+        display_error(e)
+        return
 
-        scores = []
+    passed_count = 0
+    total_count = len(test_files)
 
-        if case:
-            # ケース指定がある場合はファイルから実行
-            try:
-                test_files = get_test_files(contest, task, case)
-            except RuntimeError as e:
-                display_error(e)
-                return
+    for test_file in test_files:
+        case_name = test_file.stem
+        stdin_content, expected_output = parse_test_case(test_file)
+        stdout = _execute_main(main_func, stdin_content, case_name)
 
-            for test_file in test_files:
-                case_name = test_file.stem
-                stdin_content, _ = parse_test_case(test_file)
-                stdout = _execute_main(main_func, stdin_content, case_name)
-                if stdout is not None:
-                    score = calc_score(stdin_content, stdout)
-                    scores.append(score)
-                    display_heuristics_case_result(case_name, stdout, score)
-        else:
-            # ケース指定がない場合は 0-99 のシードで自動生成
-            size = 200
-            for seed in range(size):
-                case_name = f'seed_{seed:03}'
-                stdin_content = generate_case(seed)
-                stdout = _execute_main(main_func, stdin_content, case_name)
-                if stdout is not None:
-                    score = calc_score(stdin_content, stdout)
-                    scores.append(score)
-                    display_heuristics_case_result(case_name, stdout, score)
+        if stdout is not None:
+            result = stdout == expected_output
+            if result:
+                passed_count += 1
 
-        display_heuristics_summary(scores, 50)
+            display_case_result(
+                case_name=case_name,
+                result=result,
+                stdin=stdin_content,
+                stdout=stdout,
+                expected=expected_output,
+            )
 
-    else:
-        # 通常モードの実行
+    display_execution_summary(passed_count=passed_count, total_count=total_count)
+
+
+@click.command()
+@click.option('--contest', '-c', type=str, required=True, help='コンテストのキー')
+@click.option('--task', '-t', type=str, required=True, help='コンテスト内のタスク')
+@click.option(
+    '--case',
+    '-C',
+    type=str,
+    default=None,
+    help='ケース番号 カンマ区切りで複数指定可能, 省略の場合、全ケースを実行する',
+)
+def heuristics(contest: str, task: str, case: str | None) -> None:
+    """
+    指定したコンテスト・タスクのプログラムをヒューリスティックモードで実行し、スコアを計算する。
+    """
+    # 実行対象のmain関数を取得
+    try:
+        main_func = load_main_func(contest, task)
+    except RuntimeError as e:
+        display_error(e)
+        return
+
+    # ヒューリスティックモードの実行
+    try:
+        generate_case, calc_score = load_score_functions(contest, task)
+    except RuntimeError as e:
+        display_error(e)
+        return
+
+    scores = []
+
+    if case:
+        # ケース指定がある場合はファイルから実行
         try:
             test_files = get_test_files(contest, task, case)
         except RuntimeError as e:
             display_error(e)
             return
 
-        passed_count = 0
-        total_count = len(test_files)
-
         for test_file in test_files:
             case_name = test_file.stem
-            stdin_content, expected_output = parse_test_case(test_file)
+            stdin_content, _ = parse_test_case(test_file)
             stdout = _execute_main(main_func, stdin_content, case_name)
-
             if stdout is not None:
-                result = stdout == expected_output
-                if result:
-                    passed_count += 1
+                score = calc_score(stdin_content, stdout)
+                scores.append(score)
+                display_heuristics_case_result(case_name, stdout, score)
+    else:
+        # ケース指定がない場合は 0-99 のシードで自動生成
+        size = 200
+        for seed in range(size):
+            case_name = f'seed_{seed:03}'
+            stdin_content = generate_case(seed)
+            stdout = _execute_main(main_func, stdin_content, case_name)
+            if stdout is not None:
+                score = calc_score(stdin_content, stdout)
+                scores.append(score)
+                display_heuristics_case_result(case_name, stdout, score)
 
-                display_case_result(
-                    case_name=case_name,
-                    result=result,
-                    stdin=stdin_content,
-                    stdout=stdout,
-                    expected=expected_output,
-                )
-
-        display_execution_summary(passed_count=passed_count, total_count=total_count)
+    display_heuristics_summary(scores, 50)
